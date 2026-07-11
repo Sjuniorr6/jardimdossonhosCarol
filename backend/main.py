@@ -8,6 +8,7 @@ from typing import List, Optional
 
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -106,6 +107,11 @@ app.add_middleware(
 # Serve /images/* directly from the project's images/ folder, so uploaded files
 # can be fetched via http (e.g. http://localhost:8000/images/foo.jpg).
 app.mount("/images", StaticFiles(directory=str(IMAGES_DIR)), name="images")
+
+
+@app.get("/feedback")
+def feedback_page():
+    return FileResponse(Path(__file__).parent / "feedback.html", media_type="text/html")
 
 
 @app.get("/api/health")
