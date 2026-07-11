@@ -119,6 +119,21 @@ def admin_page():
     return FileResponse(Path(__file__).parent / "admin.html", media_type="text/html")
 
 
+@app.get("/jardim-dos-sonhos-logo.png")
+def logo():
+    return FileResponse(Path(__file__).parent / "jardim-dos-sonhos-logo.png", media_type="image/png")
+
+
+@app.get("/favicon.png")
+def favicon_png():
+    return FileResponse(Path(__file__).parent / "favicon.png", media_type="image/png")
+
+
+@app.get("/favicon.ico")
+def favicon_ico():
+    return FileResponse(Path(__file__).parent / "favicon.png", media_type="image/png")
+
+
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
