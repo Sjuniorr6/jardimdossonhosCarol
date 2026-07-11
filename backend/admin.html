@@ -102,9 +102,53 @@
       color: var(--verde-escuro);
       font-weight: 700;
       font-size: 18px;
+      min-width: 0;
     }
 
-    .topbar .brand img { height: 40px; width: auto; }
+    .topbar .brand img { height: 40px; width: auto; flex-shrink: 0; }
+
+    .topbar .brand-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .nav-toggle {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      width: 42px;
+      height: 42px;
+      padding: 10px;
+      border: 1.5px solid var(--verde-suave);
+      border-radius: 10px;
+      background: var(--verde-claro);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .nav-toggle span {
+      display: block;
+      height: 2px;
+      width: 100%;
+      background: var(--verde-escuro);
+      border-radius: 2px;
+      transition: transform 0.25s ease, opacity 0.2s ease;
+    }
+
+    .nav-toggle[aria-expanded="true"] span:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+
+    .nav-toggle[aria-expanded="true"] span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .nav-toggle[aria-expanded="true"] span:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
 
     .topbar .actions {
       display: flex;
@@ -322,7 +366,179 @@
     @media (max-width: 640px) {
       .fb-item { grid-template-columns: 1fr; }
       .fb-item .thumb { width: 100%; height: 160px; }
-      .fb-item .actions { flex-direction: row; }
+      .fb-item .actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+      .fb-item .actions .btn {
+        flex: 1;
+        min-width: 120px;
+      }
+    }
+
+    /* ---------- Mobile responsive ---------- */
+    @media (max-width: 768px) {
+      .topbar {
+        flex-wrap: wrap;
+        padding: 12px 16px;
+        gap: 12px;
+      }
+
+      .topbar .brand {
+        flex: 1;
+        font-size: 16px;
+        gap: 10px;
+      }
+
+      .topbar .brand img { height: 36px; }
+
+      .nav-toggle {
+        display: flex;
+      }
+
+      .topbar .actions {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding-top: 4px;
+        border-top: 1px solid var(--verde-suave);
+        animation: navSlideIn 0.22s ease;
+      }
+
+      .topbar .actions.open {
+        display: flex;
+      }
+
+      @keyframes navSlideIn {
+        from { opacity: 0; transform: translateY(-6px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .topbar .actions .btn,
+      .topbar .actions .user-chip {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+      }
+
+      .user-chip {
+        order: -1;
+        margin-bottom: 2px;
+      }
+
+      main.admin-main {
+        padding: 20px 16px 72px;
+      }
+
+      .page-title {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .page-title h1 {
+        font-size: 22px;
+      }
+
+      .page-title .btn {
+        width: 100%;
+      }
+
+      .modal-backdrop {
+        padding: 12px;
+        align-items: flex-end;
+      }
+
+      .modal {
+        padding: 24px 18px 20px;
+        border-radius: 20px 20px 16px 16px;
+        max-height: 94vh;
+      }
+
+      .modal h2 {
+        font-size: 19px;
+        padding-right: 36px;
+      }
+
+      .modal-footer {
+        flex-direction: column-reverse;
+        gap: 8px;
+      }
+
+      .modal-footer .btn {
+        width: 100%;
+      }
+
+      .delete-modal {
+        padding: 28px 20px 22px;
+      }
+
+      .delete-modal-footer {
+        flex-direction: column-reverse;
+      }
+
+      .delete-modal-footer .btn {
+        width: 100%;
+      }
+
+      .thumb-uploader {
+        grid-template-columns: 1fr;
+      }
+
+      .thumb-preview {
+        width: 100%;
+        height: 120px;
+      }
+
+      .thumb-controls .row {
+        flex-wrap: wrap;
+      }
+
+      .thumb-controls .row .btn {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .media-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .media-preview {
+        width: 100%;
+        height: 140px;
+      }
+
+      .media-controls .row {
+        flex-wrap: wrap;
+      }
+
+      .media-controls .row .btn {
+        flex: 1;
+      }
+
+      .toast {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        max-width: none;
+        text-align: center;
+      }
+
+      .login-card {
+        padding: 32px 22px;
+      }
+
+      .login-card h1 {
+        font-size: 21px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .topbar .brand-text {
+        font-size: 14px;
+      }
     }
 
     /* ---------- Modal / Editor ---------- */
@@ -610,9 +826,12 @@
     <header class="topbar">
       <div class="brand">
         <img src="/images/jardim-dos-sonhos-logo.png" alt="Jardim" />
-        <span>Admin · Jardim dos Sonhos</span>
+        <span class="brand-text">Admin · Jardim dos Sonhos</span>
       </div>
-      <div class="actions">
+      <button type="button" class="nav-toggle" id="navToggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="topbarNav">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="actions" id="topbarNav">
         <span class="user-chip" id="userChip"></span>
         <a class="btn btn-secondary" href="https://jardimdossonhos-production.up.railway.app/feedback" target="_blank" rel="noopener">Ver feedbacks ↗</a>
         <button class="btn btn-secondary" id="btnNewUser">+ Novo usuário</button>
@@ -820,8 +1039,35 @@
     function logout() {
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
+      closeNav();
       showLogin();
     }
+
+    // ---------- Mobile nav ----------
+    const navToggle = document.getElementById("navToggle");
+    const topbarNav = document.getElementById("topbarNav");
+
+    function closeNav() {
+      topbarNav.classList.remove("open");
+      navToggle.setAttribute("aria-expanded", "false");
+      navToggle.setAttribute("aria-label", "Abrir menu");
+    }
+
+    function toggleNav() {
+      const open = topbarNav.classList.toggle("open");
+      navToggle.setAttribute("aria-expanded", open ? "true" : "false");
+      navToggle.setAttribute("aria-label", open ? "Fechar menu" : "Abrir menu");
+    }
+
+    navToggle.addEventListener("click", toggleNav);
+
+    topbarNav.querySelectorAll("a, button").forEach(el => {
+      el.addEventListener("click", () => closeNav());
+    });
+
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 768) closeNav();
+    });
 
     loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();

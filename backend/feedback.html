@@ -172,7 +172,61 @@
     }
 
     @media (max-width: 560px) {
-      .cards-grid { grid-template-columns: 1fr; }
+      main {
+        padding-left: 0;
+        padding-right: 0;
+      }
+
+      .feedbacks-carousel {
+        padding-bottom: 4px;
+      }
+
+      .cards-scroll-wrap {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        scroll-padding-left: 20px;
+        padding: 0 20px 14px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--verde-medio) var(--verde-claro);
+      }
+
+      .cards-scroll-wrap::-webkit-scrollbar {
+        height: 8px;
+      }
+
+      .cards-scroll-wrap::-webkit-scrollbar-track {
+        background: var(--verde-claro);
+        border-radius: 999px;
+        margin: 0 20px;
+      }
+
+      .cards-scroll-wrap::-webkit-scrollbar-thumb {
+        background: var(--verde-medio);
+        border-radius: 999px;
+      }
+
+      .cards-scroll-wrap::-webkit-scrollbar-thumb:hover {
+        background: var(--verde-escuro);
+      }
+
+      .cards-grid {
+        display: flex;
+        flex-direction: row;
+        gap: 16px;
+        width: max-content;
+        padding-bottom: 4px;
+      }
+
+      .cards-grid .card {
+        flex: 0 0 min(82vw, 300px);
+        scroll-snap-align: start;
+      }
+
+      .feedbacks-carousel-nav {
+        display: none !important;
+      }
     }
 
     /* Carrossel da listagem (6 cards por página) */
@@ -356,6 +410,35 @@
       .modal {
         grid-template-columns: 1fr;
         max-height: 95vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .carousel {
+        flex-shrink: 0;
+      }
+
+      .feedback-content {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: var(--verde-medio) var(--verde-claro);
+      }
+
+      .feedback-content::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .feedback-content::-webkit-scrollbar-track {
+        background: var(--verde-claro);
+        border-radius: 999px;
+      }
+
+      .feedback-content::-webkit-scrollbar-thumb {
+        background: var(--verde-medio);
+        border-radius: 999px;
       }
     }
 
@@ -568,7 +651,9 @@
 
   <main>
     <section class="feedbacks-carousel" aria-label="Lista de feedbacks">
-      <div class="cards-grid" id="cardsGrid"></div>
+      <div class="cards-scroll-wrap" id="cardsScrollWrap">
+        <div class="cards-grid" id="cardsGrid"></div>
+      </div>
       <div class="feedbacks-carousel-nav" id="feedbacksCarouselNav" aria-hidden="true">
         <button type="button" class="fb-list-btn" id="fbListPrev" aria-label="Feedbacks anteriores">&#10094;</button>
         <div class="fb-list-dots" id="fbListDots"></div>
@@ -670,6 +755,7 @@
     let cardsPage = 0;
 
     const cardsGrid = document.getElementById("cardsGrid");
+    const cardsScrollWrap = document.getElementById("cardsScrollWrap");
     const fbListNav = document.getElementById("feedbacksCarouselNav");
     const fbListPrev = document.getElementById("fbListPrev");
     const fbListNext = document.getElementById("fbListNext");
@@ -705,13 +791,17 @@
       return `<div class="card-thumb"><img src="${resolveImageUrl(main)}" alt="${fb.title}" loading="lazy" /></div>`;
     }
 
+    function isMobileCards() {
+      return window.matchMedia("(max-width: 560px)").matches;
+    }
+
     function totalCardPages() {
       return Math.max(1, Math.ceil(feedbacks.length / CARDS_PER_PAGE));
     }
 
     function updateListCarouselNav() {
       const pages = totalCardPages();
-      const showNav = feedbacks.length > CARDS_PER_PAGE;
+      const showNav = !isMobileCards() && feedbacks.length > CARDS_PER_PAGE;
       fbListNav.classList.toggle("visible", showNav);
       fbListNav.setAttribute("aria-hidden", showNav ? "false" : "true");
       fbListPrev.disabled = cardsPage === 0;
@@ -740,8 +830,13 @@
 
     function renderCards(resetPage = false) {
       if (resetPage) cardsPage = 0;
+      const mobile = isMobileCards();
       const start = cardsPage * CARDS_PER_PAGE;
-      const pageItems = feedbacks.slice(start, start + CARDS_PER_PAGE);
+      const pageItems = mobile
+        ? feedbacks
+        : feedbacks.slice(start, start + CARDS_PER_PAGE);
+
+      if (cardsScrollWrap && resetPage) cardsScrollWrap.scrollLeft = 0;
 
       cardsGrid.innerHTML = pageItems.map(fb => `
         <article class="card" tabindex="0" data-id="${fb.id}" role="button" aria-label="Abrir feedback: ${fb.title}">
@@ -767,6 +862,8 @@
 
     fbListPrev.addEventListener("click", () => goToCardsPage(cardsPage - 1));
     fbListNext.addEventListener("click", () => goToCardsPage(cardsPage + 1));
+
+    window.addEventListener("resize", () => renderCards(false));
 
     function openModal(id) {
       const fb = feedbacks.find(f => f.id === id);
