@@ -114,6 +114,11 @@ def feedback_page():
     return FileResponse(Path(__file__).parent / "feedback.html", media_type="text/html")
 
 
+@app.get("/admin")
+def admin_page():
+    return FileResponse(Path(__file__).parent / "admin.html", media_type="text/html")
+
+
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
