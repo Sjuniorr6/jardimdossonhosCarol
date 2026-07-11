@@ -12,8 +12,8 @@ backend/jardim.db
 *.sqlite
 *.sqlite3
 
-# Imagens (não versionar — muito pesado pra push via proxy)
-images/
+# Uploads gerados pelo admin (ficam só local/servidor)
+images/upload_*
 
 # Segredos e variáveis de ambiente
 .env

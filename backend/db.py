@@ -78,7 +78,7 @@ def seed_feedbacks_if_empty():
             "date": "Junho de 2026",
             "tag": "Aniversário",
             "excerpt": "Ambiente aberto, comida maravilhosa e atendimento incrível — foi perfeito!",
-            "thumb": "images/mayara-1.png",
+            "thumb": "images/mayara-1.jpeg",
             "text": (
                 "🎈 🥳 Segundo ano de festa com o @buffetjardimdossonhos e, mais uma vez, eles superaram todas as expectativas!\n\n"
                 "🎂 No 1º aniversário, escolhi porque tinham nota 4.9 no Google, experiência de mais de 30 anos e muitas recomendações! "
@@ -92,14 +92,14 @@ def seed_feedbacks_if_empty():
             ),
             "author": "Mayara Rosa",
             "role": "Mãe da Emilly",
-            "media": ["images/mayara-1.png"],
+            "media": ["images/mayara-1.jpeg"],
         },
         {
             "title": "Festinha do João",
             "date": "10 de maio de 2026",
             "tag": "Aniversário",
             "excerpt": "Festa linda, equipe feliz, animadores incríveis — dia muito especial.",
-            "thumb": "images/card3-1.png",
+            "thumb": "images/card3-1.jpeg",
             "text": (
                 "Vou te mandar aqui por escrito!\n\nFoi uma festa linda, tudo muito organizado, a equipe que trabalhou estava feliz, "
                 "a limpeza estava excelente, os animadores foram incríveis, foi um dia muito especial, "
@@ -109,14 +109,14 @@ def seed_feedbacks_if_empty():
             ),
             "author": "Beatriz Almeida",
             "role": "Mãe do João",
-            "media": ["images/card3-1.png"],
+            "media": ["images/card3-1.jpeg"],
         },
         {
             "title": "Festinha do João",
             "date": "10 de maio de 2026",
             "tag": "Aniversário",
             "excerpt": "Festa linda, equipe feliz, animadores incríveis — dia muito especial.",
-            "thumb": "images/card4-1.png",
+            "thumb": "images/card4-1.jpeg",
             "text": (
                 "No 1o aniversário, escolhi porque tinham nota 4.9 no Google, experiência de mais de 30 anos e muitas recomendações! "
                 "E realmente: comida incrível, atendimento impecável e um ambiente acolhedor.\n\n"
@@ -128,7 +128,7 @@ def seed_feedbacks_if_empty():
             ),
             "author": "Camila Rocha",
             "role": "Paisagista",
-            "media": ["images/card4-1.png"],
+            "media": ["images/card4-1.jpeg"],
         },
     ]
 
