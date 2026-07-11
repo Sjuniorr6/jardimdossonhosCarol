@@ -22,7 +22,21 @@ from auth import (
 from db import db_cursor, init_db, row_to_feedback, seed_feedbacks_if_empty
 
 
-IMAGES_DIR = Path(__file__).resolve().parent.parent / "images"
+def _resolve_images_dir() -> Path:
+    here = Path(__file__).resolve().parent
+    candidates = [
+        here / "images",           # deploy: /app/images
+        here.parent / "images",    # local: jardim/images (main.py em backend/)
+    ]
+    for path in candidates:
+        if path.is_dir():
+            return path
+    target = here / "images" if here.name != "backend" else here.parent / "images"
+    target.mkdir(parents=True, exist_ok=True)
+    return target
+
+
+IMAGES_DIR = _resolve_images_dir()
 ALLOWED_IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
 
@@ -70,7 +84,6 @@ async def lifespan(_app: FastAPI):
     init_db()
     seed_default_admin()
     seed_feedbacks_if_empty()
-    IMAGES_DIR.mkdir(parents=True, exist_ok=True)
     yield
 
 
