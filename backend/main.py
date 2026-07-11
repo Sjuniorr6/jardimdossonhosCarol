@@ -22,24 +22,27 @@ from auth import (
     seed_default_admin,
     verify_password,
 )
-from db import DB_PATH, db_cursor, init_db, normalize_images, row_to_feedback, seed_feedbacks_if_empty
+from db import DATA_DIR, DB_PATH, db_cursor, init_db, normalize_images, row_to_feedback, seed_feedbacks_if_empty
 
 
 BUNDLED_IMAGES_DIR = Path(__file__).resolve().parent / "images"
 
 
 def _resolve_images_dir() -> Path:
-    # Railway volume: salva uploads em /app/data/images (persiste no redeploy).
+    # Com volume montado, uploads SEMPRE vão pro volume (ignora IMAGES_DIR errado no Railway).
+    if DATA_DIR:
+        return DATA_DIR / "images"
     if os.environ.get("IMAGES_DIR"):
-        target = Path(os.environ["IMAGES_DIR"])
-    elif os.environ.get("RAILWAY_VOLUME_MOUNT_PATH"):
-        target = Path(os.environ["RAILWAY_VOLUME_MOUNT_PATH"]) / "images"
-    elif Path("/app/data").is_dir():
-        target = Path("/app/data/images")
-    else:
-        target = BUNDLED_IMAGES_DIR
+        return Path(os.environ["IMAGES_DIR"])
+    target = BUNDLED_IMAGES_DIR
     target.mkdir(parents=True, exist_ok=True)
     return target
+
+
+IMAGES_DIR = _resolve_images_dir()
+IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+ALLOWED_IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
 
 
 def _seed_bundled_images(dest: Path) -> None:
@@ -52,11 +55,6 @@ def _seed_bundled_images(dest: Path) -> None:
         out = dest / item.name
         if not out.exists():
             shutil.copy2(item, out)
-
-
-IMAGES_DIR = _resolve_images_dir()
-ALLOWED_IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
-MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
 
 
 class FeedbackIn(BaseModel):
@@ -99,6 +97,11 @@ class UploadOut(BaseModel):
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    print(
+        f"[jardim] startup data_dir={DATA_DIR} db={DB_PATH} images={IMAGES_DIR} "
+        f"volume={os.environ.get('RAILWAY_VOLUME_MOUNT_PATH')!r}",
+        flush=True,
+    )
     _seed_bundled_images(IMAGES_DIR)
     init_db()
     seed_default_admin()
@@ -148,10 +151,27 @@ def favicon_ico():
 
 @app.get("/api/health")
 def health():
+    volume = os.environ.get("RAILWAY_VOLUME_MOUNT_PATH")
+    db_exists = DB_PATH.is_file()
+    db_size = DB_PATH.stat().st_size if db_exists else 0
+    with db_cursor() as cur:
+        cur.execute("SELECT COUNT(*) AS n FROM feedbacks")
+        feedback_count = cur.fetchone()["n"]
+    upload_count = sum(1 for p in IMAGES_DIR.glob("upload_*") if p.is_file()) if IMAGES_DIR.is_dir() else 0
+    on_volume = bool(volume and DATA_DIR and str(DATA_DIR) == volume)
     return {
         "status": "ok",
+        "persistent": on_volume,
+        "data_dir": str(DATA_DIR) if DATA_DIR else None,
+        "volume_mount": volume,
         "db_path": str(DB_PATH),
+        "db_exists": db_exists,
+        "db_size_bytes": db_size,
+        "feedback_count": feedback_count,
         "images_dir": str(IMAGES_DIR),
+        "upload_count": upload_count,
+        "env_images_dir": os.environ.get("IMAGES_DIR"),
+        "env_db_path": os.environ.get("DB_PATH"),
     }
 
 

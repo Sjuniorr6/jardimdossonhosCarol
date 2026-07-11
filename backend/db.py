@@ -4,16 +4,27 @@ import json
 from pathlib import Path
 from contextlib import contextmanager
 
+def _resolve_data_dir() -> Path | None:
+    """Pasta persistente do volume Railway. Só usa volume se estiver realmente montado."""
+    if os.environ.get("DATA_DIR"):
+        return Path(os.environ["DATA_DIR"])
+    mount = os.environ.get("RAILWAY_VOLUME_MOUNT_PATH")
+    if mount:
+        return Path(mount)
+    return None
+
+
 def _resolve_db_path() -> Path:
+    # Volume Railway tem prioridade sobre DB_PATH manual (evita path efêmero).
+    data_dir = _resolve_data_dir()
+    if data_dir:
+        return data_dir / "jardim.db"
     if os.environ.get("DB_PATH"):
         return Path(os.environ["DB_PATH"])
-    if os.environ.get("RAILWAY_VOLUME_MOUNT_PATH"):
-        return Path(os.environ["RAILWAY_VOLUME_MOUNT_PATH"]) / "jardim.db"
-    if Path("/app/data").is_dir():
-        return Path("/app/data/jardim.db")
     return Path(__file__).parent / "jardim.db"
 
 
+DATA_DIR = _resolve_data_dir()
 DB_PATH = _resolve_db_path()
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
