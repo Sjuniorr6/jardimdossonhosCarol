@@ -1,4 +1,5 @@
 import json
+import os
 import time
 import uuid
 from contextlib import asynccontextmanager
@@ -25,13 +26,18 @@ from db import db_cursor, init_db, row_to_feedback, seed_feedbacks_if_empty
 def _resolve_images_dir() -> Path:
     here = Path(__file__).resolve().parent
     candidates = [
-        here / "images",           # deploy: /app/images
-        here.parent / "images",    # local: jardim/images (main.py em backend/)
+        here.parent / "images",    # repo root: images/ (main.py lives in backend/)
+        here / "images",           # fallback: images/ alongside main.py
     ]
     for path in candidates:
         if path.is_dir():
             return path
-    target = here / "images" if here.name != "backend" else here.parent / "images"
+    # Neither exists yet (e.g. first run) — create the repo-root images/ folder,
+    # since that's where uploads/static images are expected to live relative to
+    # backend/ when it's used as the working/build directory.
+    target = Path(
+        os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "images"))
+    )
     target.mkdir(parents=True, exist_ok=True)
     return target
 
