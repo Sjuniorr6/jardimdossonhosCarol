@@ -163,8 +163,88 @@
 
     .cards-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .cards-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 560px) {
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Carrossel da listagem (6 cards por página) */
+    .feedbacks-carousel {
+      position: relative;
+    }
+
+    .feedbacks-carousel-nav {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 28px;
+    }
+
+    .feedbacks-carousel-nav.visible {
+      display: flex;
+    }
+
+    .fb-list-btn {
+      background: var(--branco);
+      border: 2px solid var(--verde-suave);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      cursor: pointer;
+      color: var(--verde-escuro);
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--sombra);
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .fb-list-btn:hover:not(:disabled) {
+      background: var(--verde-claro);
+      border-color: var(--verde-medio);
+      transform: scale(1.05);
+    }
+
+    .fb-list-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .fb-list-dots {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .fb-list-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: none;
+      background: var(--verde-suave);
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.2s ease;
+    }
+
+    .fb-list-dot.active {
+      background: var(--verde-escuro);
+      width: 24px;
+      border-radius: 5px;
+    }
+
+    .cards-grid.is-changing {
+      opacity: 0.4;
+      transition: opacity 0.2s ease;
     }
 
     .card {
@@ -482,13 +562,19 @@
     <a href="https://buffetjardimdossonhos.com.br/" target="_blank" rel="noopener" class="page-logo-link" aria-label="Visitar site do Buffet Jardim dos Sonhos">
       <img src="/images/jardim-dos-sonhos-logo.png" alt="Jardim dos Sonhos" class="page-logo" />
     </a>
-    <h2>Feedbacks dos nossos Anfitriões
+    <h1>Feedbacks dos nossos Anfitriões</h1>
     <p>Confira o que aconteceu, veja as fotos, os vídeos e leia os depoimentos dos nossos eventos.</p>
-  </h2>
   </header>
 
   <main>
-    <div class="cards-grid" id="cardsGrid"></div>
+    <section class="feedbacks-carousel" aria-label="Lista de feedbacks">
+      <div class="cards-grid" id="cardsGrid"></div>
+      <div class="feedbacks-carousel-nav" id="feedbacksCarouselNav" aria-hidden="true">
+        <button type="button" class="fb-list-btn" id="fbListPrev" aria-label="Feedbacks anteriores">&#10094;</button>
+        <div class="fb-list-dots" id="fbListDots"></div>
+        <button type="button" class="fb-list-btn" id="fbListNext" aria-label="Próximos feedbacks">&#10095;</button>
+      </div>
+    </section>
   </main>
 
   <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -580,7 +666,14 @@
       
     ];
 
+    const CARDS_PER_PAGE = 6;
+    let cardsPage = 0;
+
     const cardsGrid = document.getElementById("cardsGrid");
+    const fbListNav = document.getElementById("feedbacksCarouselNav");
+    const fbListPrev = document.getElementById("fbListPrev");
+    const fbListNext = document.getElementById("fbListNext");
+    const fbListDots = document.getElementById("fbListDots");
     const backdrop = document.getElementById("modalBackdrop");
     const modalClose = document.getElementById("modalClose");
     const carouselTrack = document.getElementById("carouselTrack");
@@ -612,8 +705,45 @@
       return `<div class="card-thumb"><img src="${resolveImageUrl(main)}" alt="${fb.title}" loading="lazy" /></div>`;
     }
 
-    function renderCards() {
-      cardsGrid.innerHTML = feedbacks.map(fb => `
+    function totalCardPages() {
+      return Math.max(1, Math.ceil(feedbacks.length / CARDS_PER_PAGE));
+    }
+
+    function updateListCarouselNav() {
+      const pages = totalCardPages();
+      const showNav = feedbacks.length > CARDS_PER_PAGE;
+      fbListNav.classList.toggle("visible", showNav);
+      fbListNav.setAttribute("aria-hidden", showNav ? "false" : "true");
+      fbListPrev.disabled = cardsPage === 0;
+      fbListNext.disabled = cardsPage >= pages - 1;
+
+      fbListDots.innerHTML = Array.from({ length: pages }, (_, i) =>
+        `<button type="button" class="fb-list-dot ${i === cardsPage ? "active" : ""}" data-page="${i}" aria-label="Página ${i + 1} de ${pages}"></button>`
+      ).join("");
+
+      fbListDots.querySelectorAll(".fb-list-dot").forEach(dot => {
+        dot.addEventListener("click", () => goToCardsPage(Number(dot.dataset.page)));
+      });
+    }
+
+    function goToCardsPage(page) {
+      const pages = totalCardPages();
+      const next = Math.max(0, Math.min(page, pages - 1));
+      if (next === cardsPage) return;
+      cardsPage = next;
+      cardsGrid.classList.add("is-changing");
+      requestAnimationFrame(() => {
+        renderCards(false);
+        cardsGrid.classList.remove("is-changing");
+      });
+    }
+
+    function renderCards(resetPage = false) {
+      if (resetPage) cardsPage = 0;
+      const start = cardsPage * CARDS_PER_PAGE;
+      const pageItems = feedbacks.slice(start, start + CARDS_PER_PAGE);
+
+      cardsGrid.innerHTML = pageItems.map(fb => `
         <article class="card" tabindex="0" data-id="${fb.id}" role="button" aria-label="Abrir feedback: ${fb.title}">
           ${cardThumbHtml(fb)}
           <div class="card-body">
@@ -631,7 +761,12 @@
           if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
         });
       });
+
+      updateListCarouselNav();
     }
+
+    fbListPrev.addEventListener("click", () => goToCardsPage(cardsPage - 1));
+    fbListNext.addEventListener("click", () => goToCardsPage(cardsPage + 1));
 
     function openModal(id) {
       const fb = feedbacks.find(f => f.id === id);
@@ -701,7 +836,7 @@
       if (e.key === "ArrowRight") goToSlide(currentSlide + 1);
     });
 
-    renderCards();
+    renderCards(true);
 
     // Tenta carregar feedbacks da API (backend FastAPI). Se falhar, mantém a lista estática.
     (async function loadFromApi() {
@@ -711,7 +846,7 @@
         const data = await res.json();
         if (Array.isArray(data) && data.length) {
           feedbacks = data;
-          renderCards();
+          renderCards(true);
         }
       } catch {
         // API offline — segue com a lista estática

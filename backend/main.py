@@ -25,12 +25,33 @@ from auth import (
 from db import db_cursor, init_db, normalize_images, row_to_feedback, seed_feedbacks_if_empty
 
 
+BUNDLED_IMAGES_DIR = Path(__file__).resolve().parent / "images"
+
+
 def _resolve_images_dir() -> Path:
-    # Always save uploads and serve static images from backend/images/, so files
-    # live inside the deployed area (Railway/Render root_directory = backend).
-    target = Path(__file__).resolve().parent / "images"
+    # Railway volume: salva uploads em /app/data/images (persiste no redeploy).
+    if os.environ.get("IMAGES_DIR"):
+        target = Path(os.environ["IMAGES_DIR"])
+    elif os.environ.get("RAILWAY_VOLUME_MOUNT_PATH"):
+        target = Path(os.environ["RAILWAY_VOLUME_MOUNT_PATH"]) / "images"
+    elif Path("/app/data").is_dir():
+        target = Path("/app/data/images")
+    else:
+        target = BUNDLED_IMAGES_DIR
     target.mkdir(parents=True, exist_ok=True)
     return target
+
+
+def _seed_bundled_images(dest: Path) -> None:
+    """Copia imagens do Git (hero, logo…) pro volume na 1ª vez."""
+    if not BUNDLED_IMAGES_DIR.is_dir() or BUNDLED_IMAGES_DIR.resolve() == dest.resolve():
+        return
+    for item in BUNDLED_IMAGES_DIR.iterdir():
+        if not item.is_file() or item.name.startswith("upload_"):
+            continue
+        out = dest / item.name
+        if not out.exists():
+            shutil.copy2(item, out)
 
 
 IMAGES_DIR = _resolve_images_dir()
@@ -78,6 +99,7 @@ class UploadOut(BaseModel):
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    _seed_bundled_images(IMAGES_DIR)
     init_db()
     seed_default_admin()
     seed_feedbacks_if_empty()
