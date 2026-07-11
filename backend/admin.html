@@ -384,6 +384,84 @@
       border-top: 1px solid var(--verde-suave);
     }
 
+    /* Delete confirm modal */
+    .delete-modal {
+      max-width: 420px;
+      text-align: center;
+      padding: 36px 32px 28px;
+      animation: deleteModalIn 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes deleteModalIn {
+      from { opacity: 0; transform: scale(0.94) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .delete-modal-icon {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 20px;
+      background: linear-gradient(145deg, #fdecea 0%, #fad4d0 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(192, 57, 43, 0.15);
+    }
+
+    .delete-modal-icon svg {
+      width: 32px;
+      height: 32px;
+      color: var(--erro);
+    }
+
+    .delete-modal h2 {
+      margin-bottom: 8px;
+      font-size: 21px;
+    }
+
+    .delete-modal-desc {
+      color: var(--texto-suave);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .delete-modal-preview {
+      background: var(--verde-claro);
+      border: 1.5px solid var(--verde-suave);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+      font-weight: 600;
+      color: var(--verde-escuro);
+      font-size: 15px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .delete-modal-warning {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--erro);
+      background: #fdecea;
+      padding: 8px 14px;
+      border-radius: 999px;
+      margin-bottom: 4px;
+    }
+
+    .delete-modal-footer {
+      justify-content: center;
+      border-top: none;
+      padding-top: 22px;
+      margin-top: 8px;
+    }
+
+    .delete-modal-footer .btn-danger {
+      min-width: 130px;
+    }
+
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -651,6 +729,31 @@
     </div>
   </div>
 
+  <!-- ================= Delete confirm modal ================= -->
+  <div class="modal-backdrop" id="deleteBackdrop">
+    <div class="modal delete-modal" role="dialog" aria-labelledby="deleteTitle" aria-modal="true">
+      <div class="delete-modal-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          <path d="M10 11v6"/><path d="M14 11v6"/>
+          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+        </svg>
+      </div>
+      <h2 id="deleteTitle">Excluir feedback?</h2>
+      <p class="delete-modal-desc">Você está prestes a remover permanentemente:</p>
+      <div class="delete-modal-preview" id="deletePreviewTitle"></div>
+      <p class="delete-modal-warning">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Esta ação não pode ser desfeita
+      </p>
+      <div class="modal-footer delete-modal-footer">
+        <button type="button" class="btn btn-secondary" id="deleteCancel">Cancelar</button>
+        <button type="button" class="btn btn-danger" id="deleteConfirm">Sim, excluir</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <script>
@@ -784,7 +887,10 @@
         btn.addEventListener("click", () => openEditor(Number(btn.dataset.edit)));
       });
       listContainer.querySelectorAll("[data-delete]").forEach(btn => {
-        btn.addEventListener("click", () => deleteFeedback(Number(btn.dataset.delete)));
+        btn.addEventListener("click", () => {
+          const title = btn.closest(".fb-item").querySelector("h3").textContent;
+          openDeleteConfirm(Number(btn.dataset.delete), title);
+        });
       });
     }
 
@@ -811,16 +917,50 @@
       `;
     }
 
-    async function deleteFeedback(id) {
-      if (!confirm("Excluir este feedback? Essa ação não pode ser desfeita.")) return;
+    // ---------- Delete confirm ----------
+    const deleteBackdrop = document.getElementById("deleteBackdrop");
+    const deletePreviewTitle = document.getElementById("deletePreviewTitle");
+    const deleteCancel = document.getElementById("deleteCancel");
+    const deleteConfirm = document.getElementById("deleteConfirm");
+    let pendingDeleteId = null;
+
+    function openDeleteConfirm(id, title) {
+      pendingDeleteId = id;
+      deletePreviewTitle.textContent = title;
+      deleteBackdrop.classList.add("open");
+      deleteConfirm.focus();
+    }
+
+    function closeDeleteConfirm() {
+      pendingDeleteId = null;
+      deleteBackdrop.classList.remove("open");
+    }
+
+    deleteCancel.addEventListener("click", closeDeleteConfirm);
+    deleteBackdrop.addEventListener("click", (e) => {
+      if (e.target === deleteBackdrop) closeDeleteConfirm();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && deleteBackdrop.classList.contains("open")) closeDeleteConfirm();
+    });
+
+    deleteConfirm.addEventListener("click", async () => {
+      const id = pendingDeleteId;
+      if (!id) return;
+      deleteConfirm.disabled = true;
+      deleteConfirm.textContent = "Excluindo…";
       try {
         await api(`/api/feedbacks/${id}`, { method: "DELETE" });
+        closeDeleteConfirm();
         toast("Feedback excluído");
         loadFeedbacks();
       } catch (err) {
         toast(err.message, "error");
+      } finally {
+        deleteConfirm.disabled = false;
+        deleteConfirm.textContent = "Sim, excluir";
       }
-    }
+    });
 
     // ---------- Editor ----------
     const editorBackdrop = document.getElementById("editorBackdrop");
