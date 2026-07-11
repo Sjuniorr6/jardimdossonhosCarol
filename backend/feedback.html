@@ -222,6 +222,8 @@
       .cards-grid .card {
         flex: 0 0 min(82vw, 300px);
         scroll-snap-align: start;
+        min-height: 360px;
+        aspect-ratio: 3 / 4;
       }
 
       .feedbacks-carousel-nav {
@@ -302,7 +304,7 @@
     }
 
     .card {
-      background: var(--branco);
+      background: var(--verde-claro);
       border-radius: var(--radius);
       overflow: hidden;
       box-shadow: var(--sombra);
@@ -311,6 +313,10 @@
       border: 1px solid var(--verde-suave);
       display: flex;
       flex-direction: column;
+      justify-content: flex-end;
+      position: relative;
+      min-height: 320px;
+      aspect-ratio: 3 / 4;
     }
 
     .card:hover {
@@ -324,45 +330,55 @@
     }
 
     .card-thumb {
+      position: absolute;
+      inset: 0;
       width: 100%;
-      aspect-ratio: 16 / 10;
+      height: 100%;
       background: var(--verde-claro);
       overflow: hidden;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     .card-thumb img {
       width: 100%;
       height: 100%;
-      object-fit: contain;
+      object-fit: cover;
       object-position: center;
       display: block;
       transition: transform 0.4s ease;
     }
 
-    .card:hover .card-thumb img { transform: scale(1.03); }
+    .card:hover .card-thumb img { transform: scale(1.05); }
 
-    .card-body { padding: 18px 20px 22px; }
+    .card-body {
+      position: relative;
+      z-index: 1;
+      padding: 48px 18px 20px;
+      width: 100%;
+      background: linear-gradient(
+        to top,
+        rgba(43, 58, 48, 0.95) 0%,
+        rgba(43, 58, 48, 0.72) 45%,
+        rgba(43, 58, 48, 0.2) 75%,
+        transparent 100%
+      );
+    }
 
     .card-title {
       font-size: 18px;
       font-weight: 600;
-      color: var(--verde-escuro);
+      color: var(--branco);
       margin-bottom: 6px;
     }
 
     .card-date {
       font-size: 13px;
-      color: var(--texto-suave);
+      color: rgba(255, 255, 255, 0.82);
       margin-bottom: 10px;
     }
 
     .card-excerpt {
       font-size: 14px;
-      color: var(--texto);
+      color: rgba(255, 255, 255, 0.92);
       display: -webkit-box;
       -webkit-line-clamp: 2;
       line-clamp: 2;
