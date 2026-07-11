@@ -1,4 +1,6 @@
 import json
+import os
+import shutil
 import time
 import uuid
 from contextlib import asynccontextmanager
@@ -20,7 +22,7 @@ from auth import (
     seed_default_admin,
     verify_password,
 )
-from db import db_cursor, init_db, row_to_feedback, seed_feedbacks_if_empty
+from db import db_cursor, init_db, normalize_images, row_to_feedback, seed_feedbacks_if_empty
 
 
 def _resolve_images_dir() -> Path:
@@ -109,17 +111,17 @@ def admin_page():
 
 @app.get("/jardim-dos-sonhos-logo.png")
 def logo():
-    return FileResponse(Path(__file__).parent / "jardim-dos-sonhos-logo.png", media_type="image/png")
+    return FileResponse(IMAGES_DIR / "jardim-dos-sonhos-logo.png", media_type="image/png")
 
 
 @app.get("/favicon.png")
 def favicon_png():
-    return FileResponse(Path(__file__).parent / "favicon.png", media_type="image/png")
+    return FileResponse(IMAGES_DIR / "favicon.png", media_type="image/png")
 
 
 @app.get("/favicon.ico")
 def favicon_ico():
-    return FileResponse(Path(__file__).parent / "favicon.png", media_type="image/png")
+    return FileResponse(IMAGES_DIR / "favicon.png", media_type="image/png")
 
 
 @app.get("/api/health")
@@ -213,6 +215,7 @@ def get_feedback(feedback_id: int):
 
 @app.post("/api/feedbacks", response_model=FeedbackOut, status_code=status.HTTP_201_CREATED)
 def create_feedback(payload: FeedbackIn, _=Depends(get_current_user)):
+    thumb, media = normalize_images(payload.thumb, payload.media)
     with db_cursor() as cur:
         if payload.position is None:
             cur.execute("SELECT COALESCE(MAX(position), -1) + 1 AS next_pos FROM feedbacks")
@@ -226,9 +229,9 @@ def create_feedback(payload: FeedbackIn, _=Depends(get_current_user)):
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                payload.title, payload.date, payload.tag, payload.excerpt, payload.thumb,
+                payload.title, payload.date, payload.tag, payload.excerpt, thumb,
                 payload.text, payload.author, payload.role,
-                json.dumps(list(payload.media)),
+                json.dumps(media),
                 position,
             ),
         )
@@ -240,6 +243,7 @@ def create_feedback(payload: FeedbackIn, _=Depends(get_current_user)):
 
 @app.put("/api/feedbacks/{feedback_id}", response_model=FeedbackOut)
 def update_feedback(feedback_id: int, payload: FeedbackIn, _=Depends(get_current_user)):
+    thumb, media = normalize_images(payload.thumb, payload.media)
     with db_cursor() as cur:
         cur.execute("SELECT id, position FROM feedbacks WHERE id = ?", (feedback_id,))
         row = cur.fetchone()
@@ -256,9 +260,9 @@ def update_feedback(feedback_id: int, payload: FeedbackIn, _=Depends(get_current
              WHERE id=?
             """,
             (
-                payload.title, payload.date, payload.tag, payload.excerpt, payload.thumb,
+                payload.title, payload.date, payload.tag, payload.excerpt, thumb,
                 payload.text, payload.author, payload.role,
-                json.dumps(list(payload.media)),
+                json.dumps(media),
                 position, feedback_id,
             ),
         )

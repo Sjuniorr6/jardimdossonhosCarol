@@ -1,9 +1,12 @@
+import os
 import sqlite3
 import json
 from pathlib import Path
 from contextlib import contextmanager
 
-DB_PATH = Path(__file__).parent / "jardim.db"
+# Persistent path override (Railway/Render volume). Falls back to backend/jardim.db locally.
+DB_PATH = Path(os.environ.get("DB_PATH", str(Path(__file__).parent / "jardim.db")))
+DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 
 def get_connection():
@@ -150,6 +153,23 @@ def seed_feedbacks_if_empty():
             )
 
 
+def normalize_images(thumb: str, media: list) -> tuple[str, list]:
+    """Garante thumb na galeria e remove duplicatas."""
+    seen = set()
+    merged = []
+    for src in [thumb, *(media or [])]:
+        s = (src or "").strip()
+        if not s or s in seen:
+            continue
+        seen.add(s)
+        merged.append(s)
+    if not merged:
+        return (thumb or "").strip(), []
+    new_thumb = (thumb or "").strip() if (thumb or "").strip() in merged else merged[0]
+    ordered = [new_thumb] + [m for m in merged if m != new_thumb]
+    return new_thumb, ordered
+
+
 def row_to_feedback(row: sqlite3.Row) -> dict:
     raw = json.loads(row["media_json"] or "[]")
     # Backward compat: older records stored [{"type": "image", "src": "..."}].
@@ -163,13 +183,15 @@ def row_to_feedback(row: sqlite3.Row) -> dict:
         elif isinstance(item, str):
             media.append(item)
 
+    thumb, media = normalize_images(row["thumb"], media)
+
     return {
         "id": row["id"],
         "title": row["title"],
         "date": row["date"],
         "tag": row["tag"],
         "excerpt": row["excerpt"],
-        "thumb": row["thumb"],
+        "thumb": thumb,
         "text": row["text"],
         "author": row["author"],
         "role": row["role"],

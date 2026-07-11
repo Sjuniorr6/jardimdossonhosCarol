@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Feedbacks | Jardim</title>
-  <link rel="icon" type="image/png" href="favicon.png" />
-  <link rel="apple-touch-icon" href="favicon.png" />
+  <link rel="icon" type="image/png" href="/images/favicon.png" />
+  <link rel="apple-touch-icon" href="/images/favicon.png" />
   <style>
     :root {
       --verde-claro: #e6f5ec;
@@ -195,6 +195,50 @@
       background: var(--verde-claro);
       overflow: hidden;
       position: relative;
+    }
+
+    .card-thumb-grid {
+      display: grid;
+      gap: 2px;
+      width: 100%;
+      height: 100%;
+    }
+
+    .card-thumb-grid[data-count="2"] { grid-template-columns: 1fr 1fr; }
+    .card-thumb-grid[data-count="3"] {
+      grid-template-columns: 2fr 1fr;
+      grid-template-rows: 1fr 1fr;
+    }
+    .card-thumb-grid[data-count="3"] .card-thumb-cell:first-child { grid-row: span 2; }
+    .card-thumb-grid[data-count="4"] {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+    }
+
+    .card-thumb-cell {
+      position: relative;
+      overflow: hidden;
+      background: var(--verde-claro);
+      min-height: 0;
+    }
+
+    .card-thumb-cell img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card-thumb-more {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(30, 55, 40, 0.55);
+      color: #fff;
+      font-size: 22px;
+      font-weight: 700;
     }
 
     .card-thumb img {
@@ -476,7 +520,7 @@
 
   <header class="page-header">
     <a href="https://buffetjardimdossonhos.com.br/" target="_blank" rel="noopener" class="page-logo-link" aria-label="Visitar site do Buffet Jardim dos Sonhos">
-      <img src="jardim-dos-sonhos-logo.png" alt="Jardim dos Sonhos" class="page-logo" />
+      <img src="/images/jardim-dos-sonhos-logo.png" alt="Jardim dos Sonhos" class="page-logo" />
     </a>
     <h1>Feedbacks dos nossos Anfitriões</h1>
     <p>Confira o que aconteceu, veja as fotos, os vídeos e leia os depoimentos dos nossos eventos.</p>
@@ -519,9 +563,8 @@
     function resolveImageUrl(src) {
       if (!src) return "";
       if (/^https?:\/\//i.test(src) || src.startsWith("data:")) return src;
-      // If we know the backend URL, prefix so freshly-uploaded images load via HTTP.
-      // Falls back to relative path if we're already same-origin as the API.
-      return API_BASE ? API_BASE + "/" + src.replace(/^\//, "") : src;
+      const path = "/" + src.replace(/^\//, "");
+      return API_BASE ? API_BASE + path : path;
     }
 
     let feedbacks = [
@@ -587,10 +630,43 @@
     let currentSlide = 0;
     let slides = [];
 
+    function getFeedbackImages(fb) {
+      const seen = new Set();
+      const images = [];
+      for (const src of [fb.thumb, ...(fb.media || [])]) {
+        const s = (src || "").trim();
+        if (!s || seen.has(s)) continue;
+        seen.add(s);
+        images.push(s);
+      }
+      return images;
+    }
+
+    function cardThumbHtml(fb) {
+      const images = getFeedbackImages(fb);
+      if (!images.length) {
+        return `<div class="card-thumb"><div class="card-thumb-cell" style="height:100%"></div></div>`;
+      }
+      if (images.length === 1) {
+        return `<div class="card-thumb"><img src="${resolveImageUrl(images[0])}" alt="${fb.title}" loading="lazy" /></div>`;
+      }
+      const maxShow = Math.min(images.length, 4);
+      const extra = images.length - maxShow;
+      const cells = images.slice(0, maxShow).map((src, i) => {
+        const showMore = extra > 0 && i === maxShow - 1;
+        return `
+          <div class="card-thumb-cell">
+            <img src="${resolveImageUrl(src)}" alt="${fb.title} - foto ${i + 1}" loading="lazy" />
+            ${showMore ? `<span class="card-thumb-more">+${extra}</span>` : ""}
+          </div>`;
+      }).join("");
+      return `<div class="card-thumb"><div class="card-thumb-grid" data-count="${maxShow}">${cells}</div></div>`;
+    }
+
     function renderCards() {
       cardsGrid.innerHTML = feedbacks.map(fb => `
         <article class="card" tabindex="0" data-id="${fb.id}" role="button" aria-label="Abrir feedback: ${fb.title}">
-          <div class="card-thumb"><img src="${resolveImageUrl(fb.thumb)}" alt="${fb.title}" loading="lazy" /></div>
+          ${cardThumbHtml(fb)}
           <div class="card-body">
             <h3 class="card-title">${fb.title}</h3>
             <p class="card-date">${fb.date}</p>
@@ -620,13 +696,15 @@
       document.getElementById("modalRole").textContent = fb.role;
       document.getElementById("modalAvatar").textContent = fb.author.split(" ").map(n => n[0]).slice(0,2).join("");
 
-      carouselTrack.innerHTML = fb.media.map((src, i) => `
+      const images = getFeedbackImages(fb);
+
+      carouselTrack.innerHTML = images.map((src, i) => `
         <div class="carousel-slide ${i === 0 ? "active" : ""}" data-index="${i}">
           <img src="${resolveImageUrl(src)}" alt="${fb.title} - imagem ${i + 1}" />
         </div>
       `).join("");
 
-      carouselDots.innerHTML = fb.media.map((_, i) =>
+      carouselDots.innerHTML = images.map((_, i) =>
         `<button class="dot ${i === 0 ? "active" : ""}" data-index="${i}" aria-label="Ir para slide ${i + 1}"></button>`
       ).join("");
 
@@ -637,7 +715,7 @@
       slides = carouselTrack.querySelectorAll(".carousel-slide");
       currentSlide = 0;
 
-      const hasMultiple = fb.media.length > 1;
+      const hasMultiple = images.length > 1;
       prevBtn.style.display = hasMultiple ? "flex" : "none";
       nextBtn.style.display = hasMultiple ? "flex" : "none";
       carouselDots.style.display = hasMultiple ? "flex" : "none";

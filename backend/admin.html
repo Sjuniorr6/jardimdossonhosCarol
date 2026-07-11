@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin | Jardim dos Sonhos</title>
-  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="icon" type="image/png" href="/images/favicon.png" />
   <style>
     :root {
       --verde-claro: #e6f5ec;
@@ -507,7 +507,7 @@
   <!-- ================= LOGIN ================= -->
   <div class="login-wrap" id="loginWrap">
     <form class="login-card" id="loginForm">
-      <img src="jardim-dos-sonhos-logo.png" alt="Jardim dos Sonhos" class="login-logo" />
+      <img src="/images/jardim-dos-sonhos-logo.png" alt="Jardim dos Sonhos" class="login-logo" />
       <h1>Área administrativa</h1>
       <p class="sub">Entre para gerenciar os feedbacks</p>
 
@@ -531,7 +531,7 @@
   <div class="app" id="app">
     <header class="topbar">
       <div class="brand">
-        <img src="jardim-dos-sonhos-logo.png" alt="Jardim" />
+        <img src="/images/jardim-dos-sonhos-logo.png" alt="Jardim" />
         <span>Admin · Jardim dos Sonhos</span>
       </div>
       <div class="actions">
@@ -835,9 +835,8 @@
     function resolveImageUrl(src) {
       if (!src) return "";
       if (/^https?:\/\//i.test(src) || src.startsWith("data:")) return src;
-      // Prefer backend URL so freshly-uploaded files show immediately without waiting
-      // for the OS to sync the file on disk from admin's viewpoint.
-      return API_BASE ? API_BASE + "/" + src.replace(/^\//, "") : src;
+      const path = "/" + src.replace(/^\//, "");
+      return API_BASE ? API_BASE + path : path;
     }
 
     async function uploadImageFile(fileInput) {
@@ -981,16 +980,53 @@
 
     editorForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const media = Array.from(mediaList.querySelectorAll(".media-row"))
+
+      // Envia arquivos pendentes para backend/images/ antes de salvar
+      if (thumbFile.files.length) {
+        try {
+          const path = await uploadImageFile(thumbFile);
+          if (path) {
+            thumbInput.value = path;
+            setThumbPreview(path);
+          }
+        } catch (err) {
+          toast(err.message, "error");
+          return;
+        }
+      }
+
+      for (const row of mediaList.querySelectorAll(".media-row")) {
+        const textInput = row.querySelector("input[type='text']");
+        const fileInput = row.querySelector("input[type='file']");
+        if (fileInput.files.length) {
+          try {
+            const path = await uploadImageFile(fileInput);
+            if (path) {
+              textInput.value = path;
+              setMediaRowPreview(row, path);
+            }
+          } catch (err) {
+            toast(err.message, "error");
+            return;
+          }
+        }
+      }
+
+      let thumb = document.getElementById("f-thumb").value.trim();
+      let media = Array.from(mediaList.querySelectorAll(".media-row"))
         .map(r => r.querySelector("input[type='text']").value.trim())
         .filter(src => src);
+
+      // Thumb sempre entra na galeria exibida no card
+      if (thumb && !media.includes(thumb)) media = [thumb, ...media];
+      if (!thumb && media.length) thumb = media[0];
 
       const payload = {
         title: document.getElementById("f-title").value.trim(),
         date: document.getElementById("f-date").value.trim(),
         tag: document.getElementById("f-tag").value.trim(),
         excerpt: document.getElementById("f-excerpt").value.trim(),
-        thumb: document.getElementById("f-thumb").value.trim(),
+        thumb,
         text: document.getElementById("f-text").value,
         author: document.getElementById("f-author").value.trim(),
         role: document.getElementById("f-role").value.trim(),
