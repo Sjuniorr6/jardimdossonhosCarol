@@ -7,12 +7,12 @@ __pycache__/
 venv/
 env/
 
-# SQLite database (dados locais)
-backend/jardim.db
+# SQLite database (dados locais — NUNCA commitar)
+jardim.db
 *.sqlite
 *.sqlite3
 
-# Uploads gerados pelo admin (ficam só local/servidor)
+# Uploads gerados pelo admin
 images/upload_*
 
 # Segredos e variáveis de ambiente

@@ -22,7 +22,7 @@ from auth import (
     seed_default_admin,
     verify_password,
 )
-from db import db_cursor, init_db, normalize_images, row_to_feedback, seed_feedbacks_if_empty
+from db import DB_PATH, db_cursor, init_db, normalize_images, row_to_feedback, seed_feedbacks_if_empty
 
 
 BUNDLED_IMAGES_DIR = Path(__file__).resolve().parent / "images"
@@ -148,7 +148,11 @@ def favicon_ico():
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "db_path": str(DB_PATH),
+        "images_dir": str(IMAGES_DIR),
+    }
 
 
 # ---------- Auth ----------

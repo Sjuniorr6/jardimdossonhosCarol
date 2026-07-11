@@ -4,8 +4,17 @@ import json
 from pathlib import Path
 from contextlib import contextmanager
 
-# Persistent path override (Railway/Render volume). Falls back to backend/jardim.db locally.
-DB_PATH = Path(os.environ.get("DB_PATH", str(Path(__file__).parent / "jardim.db")))
+def _resolve_db_path() -> Path:
+    if os.environ.get("DB_PATH"):
+        return Path(os.environ["DB_PATH"])
+    if os.environ.get("RAILWAY_VOLUME_MOUNT_PATH"):
+        return Path(os.environ["RAILWAY_VOLUME_MOUNT_PATH"]) / "jardim.db"
+    if Path("/app/data").is_dir():
+        return Path("/app/data/jardim.db")
+    return Path(__file__).parent / "jardim.db"
+
+
+DB_PATH = _resolve_db_path()
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 
