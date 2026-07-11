@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin | Jardim dos Sonhos</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <style>
+    :root {
+      --verde-claro: #e6f5ec;
+      --verde-suave: #c8e8d4;
+      --verde-medio: #7cc59a;
+      --verde-escuro: #4a6741;
+      --branco: #ffffff;
+      --texto: #2b3a30;
+      --texto-suave: #6b7a70;
+      --erro: #c0392b;
+      --alerta: #e67e22;
+      --sombra: 0 6px 20px rgba(62, 143, 95, 0.12);
+      --sombra-hover: 0 12px 30px rgba(62, 143, 95, 0.22);
+      --radius: 16px;
+      --fundo-cream: #faf5e4;
+      --fundo-lavanda: #e8eef8;
+      --fundo-rosa: #f5e0ea;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(90deg, var(--fundo-cream) 0%, var(--fundo-lavanda) 48%, var(--fundo-rosa) 100%);
+      color: var(--texto);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* ---------- Login ---------- */
+    .login-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: var(--branco);
+      border-radius: var(--radius);
+      box-shadow: var(--sombra);
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 400px;
+      border: 1px solid var(--verde-suave);
+    }
+
+    .login-logo {
+      display: block;
+      max-width: 220px;
+      margin: 0 auto 24px;
+    }
+
+    .login-card h1 {
+      color: var(--verde-escuro);
+      font-size: 24px;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .login-card .sub {
+      text-align: center;
+      color: var(--texto-suave);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    /* ---------- App Layout ---------- */
+    .app {
+      display: none;
+      min-height: 100vh;
+    }
+
+    .app.active { display: block; }
+    .login-wrap.hidden { display: none; }
+
+    .topbar {
+      background: var(--branco);
+      border-bottom: 1px solid var(--verde-suave);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--verde-escuro);
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .topbar .brand img { height: 40px; width: auto; }
+
+    .topbar .actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .user-chip {
+      font-size: 13px;
+      color: var(--texto-suave);
+      background: var(--verde-claro);
+      padding: 6px 12px;
+      border-radius: 999px;
+    }
+
+    main.admin-main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 24px 80px;
+    }
+
+    .page-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .page-title h1 {
+      color: var(--verde-escuro);
+      font-size: 26px;
+      font-weight: 700;
+    }
+
+    /* ---------- Form Controls ---------- */
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--texto);
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="url"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--verde-suave);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--texto);
+      background: var(--branco);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--verde-medio);
+      box-shadow: 0 0 0 3px rgba(124, 197, 154, 0.2);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+      line-height: 1.6;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--verde-escuro);
+      color: var(--branco);
+    }
+
+    .btn-primary:hover { background: #3a5233; transform: translateY(-1px); }
+
+    .btn-secondary {
+      background: var(--verde-claro);
+      color: var(--verde-escuro);
+      border: 1px solid var(--verde-suave);
+    }
+
+    .btn-secondary:hover { background: var(--verde-suave); }
+
+    .btn-danger {
+      background: #fdecea;
+      color: var(--erro);
+      border: 1px solid #f5c6c1;
+    }
+
+    .btn-danger:hover { background: #f9d6d1; }
+
+    .btn-block { width: 100%; }
+
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ---------- Alert / Toast ---------- */
+    .alert {
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      margin-bottom: 14px;
+    }
+
+    .alert-error { background: #fdecea; color: var(--erro); border: 1px solid #f5c6c1; }
+    .alert-info { background: var(--verde-claro); color: var(--verde-escuro); border: 1px solid var(--verde-suave); }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--verde-escuro);
+      color: var(--branco);
+      padding: 14px 20px;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 2000;
+      pointer-events: none;
+      max-width: 320px;
+      font-size: 14px;
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.error { background: var(--erro); }
+
+    /* ---------- Feedback list ---------- */
+    .fb-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .fb-item {
+      background: var(--branco);
+      border-radius: var(--radius);
+      box-shadow: var(--sombra);
+      border: 1px solid var(--verde-suave);
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 120px 1fr auto;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .fb-item .thumb {
+      width: 120px;
+      height: 80px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--verde-claro);
+    }
+
+    .fb-item .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .fb-item .info h3 {
+      color: var(--verde-escuro);
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .fb-item .info .meta {
+      font-size: 12px;
+      color: var(--texto-suave);
+    }
+
+    .fb-item .info .excerpt {
+      font-size: 13px;
+      color: var(--texto);
+      margin-top: 6px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .fb-item .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    @media (max-width: 640px) {
+      .fb-item { grid-template-columns: 1fr; }
+      .fb-item .thumb { width: 100%; height: 160px; }
+      .fb-item .actions { flex-direction: row; }
+    }
+
+    /* ---------- Modal / Editor ---------- */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(30, 55, 40, 0.55);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+      padding: 20px;
+    }
+
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      background: var(--branco);
+      border-radius: 20px;
+      max-width: 780px;
+      width: 100%;
+      max-height: 92vh;
+      overflow-y: auto;
+      padding: 32px 30px 26px;
+      box-shadow: 0 30px 70px rgba(0,0,0,0.25);
+      position: relative;
+    }
+
+    .modal h2 {
+      color: var(--verde-escuro);
+      margin-bottom: 20px;
+      font-size: 22px;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: var(--verde-claro);
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 18px;
+      color: var(--verde-escuro);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .modal-close:hover { transform: rotate(90deg); }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px solid var(--verde-suave);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* Media list inside editor */
+    .media-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .media-row {
+      display: grid;
+      grid-template-columns: 72px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      background: var(--verde-claro);
+      padding: 8px;
+      border-radius: 10px;
+    }
+
+    .media-preview {
+      width: 72px;
+      height: 60px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--branco);
+      border: 1px solid var(--verde-suave);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--texto-suave);
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .media-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .media-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .media-controls input {
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    .media-controls .row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    /* Thumb uploader */
+    .thumb-uploader {
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .thumb-preview {
+      width: 88px;
+      height: 66px;
+      border-radius: 10px;
+      background: var(--verde-claro);
+      overflow: hidden;
+      border: 1px solid var(--verde-suave);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--texto-suave);
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .thumb-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+    .thumb-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .thumb-controls .row {
+      display: flex;
+      gap: 6px;
+    }
+
+    input[type="file"] { display: none; }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--texto-suave);
+    }
+
+    .loader {
+      text-align: center;
+      padding: 40px;
+      color: var(--texto-suave);
+    }
+  </style>
+</head>
+<body>
+  <!-- ================= LOGIN ================= -->
+  <div class="login-wrap" id="loginWrap">
+    <form class="login-card" id="loginForm">
+      <img src="jardim-dos-sonhos-logo.png" alt="Jardim dos Sonhos" class="login-logo" />
+      <h1>Área administrativa</h1>
+      <p class="sub">Entre para gerenciar os feedbacks</p>
+
+      <div id="loginError" class="alert alert-error" style="display:none"></div>
+
+      <div class="field">
+        <label for="username">Usuário</label>
+        <input type="text" id="username" autocomplete="username" required autofocus />
+      </div>
+
+      <div class="field">
+        <label for="password">Senha</label>
+        <input type="password" id="password" autocomplete="current-password" required />
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Entrar</button>
+    </form>
+  </div>
+
+  <!-- ================= APP ================= -->
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="brand">
+        <img src="jardim-dos-sonhos-logo.png" alt="Jardim" />
+        <span>Admin · Jardim dos Sonhos</span>
+      </div>
+      <div class="actions">
+        <span class="user-chip" id="userChip"></span>
+        <button class="btn btn-secondary" id="btnNewUser">+ Novo usuário</button>
+        <button class="btn btn-secondary" id="btnLogout">Sair</button>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <div class="page-title">
+        <h1>Feedbacks</h1>
+        <button class="btn btn-primary" id="btnNewFeedback">+ Novo feedback</button>
+      </div>
+
+      <div id="listContainer">
+        <div class="loader">Carregando…</div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ================= Editor modal ================= -->
+  <div class="modal-backdrop" id="editorBackdrop">
+    <div class="modal">
+      <button class="modal-close" id="editorClose" aria-label="Fechar">&times;</button>
+      <h2 id="editorTitle">Novo feedback</h2>
+
+      <form id="editorForm">
+        <div class="grid-2">
+          <div class="field">
+            <label for="f-title">Título</label>
+            <input type="text" id="f-title" required />
+          </div>
+          <div class="field">
+            <label for="f-date">Data (texto exibido)</label>
+            <input type="text" id="f-date" placeholder="Ex.: 14 de junho de 2026" required />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="f-tag">Tag</label>
+          <input type="text" id="f-tag" placeholder="Ex.: Aniversário" required />
+        </div>
+
+        <div class="field">
+          <label>Thumbnail (imagem principal do card)</label>
+          <div class="thumb-uploader">
+            <div class="thumb-preview" id="thumbPreview"><span>Sem imagem</span></div>
+            <div class="thumb-controls">
+              <input type="text" id="f-thumb" placeholder="images/hero-1.jpeg" required />
+              <div class="row">
+                <button type="button" class="btn btn-secondary btn-sm" id="btnUploadThumb">Enviar imagem…</button>
+              </div>
+            </div>
+          </div>
+          <input type="file" id="thumbFile" accept="image/*" />
+        </div>
+
+        <div class="field">
+          <label for="f-excerpt">Resumo (aparece no card)</label>
+          <input type="text" id="f-excerpt" required />
+        </div>
+
+        <div class="field">
+          <label for="f-text">Depoimento completo</label>
+          <textarea id="f-text" required></textarea>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="f-author">Autor(a)</label>
+            <input type="text" id="f-author" required />
+          </div>
+          <div class="field">
+            <label for="f-role">Papel / descrição</label>
+            <input type="text" id="f-role" placeholder="Ex.: Mãe do aniversariante" required />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Galeria de imagens (carrossel)</label>
+          <div class="media-list" id="mediaList"></div>
+          <button type="button" class="btn btn-secondary" id="btnAddMedia">+ Adicionar imagem</button>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="editorCancel">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="editorSave">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= New user modal ================= -->
+  <div class="modal-backdrop" id="userBackdrop">
+    <div class="modal" style="max-width:420px">
+      <button class="modal-close" id="userClose" aria-label="Fechar">&times;</button>
+      <h2>Novo usuário administrador</h2>
+
+      <div id="userError" class="alert alert-error" style="display:none"></div>
+
+      <form id="userForm">
+        <div class="field">
+          <label for="u-username">Usuário</label>
+          <input type="text" id="u-username" required minlength="3" />
+        </div>
+        <div class="field">
+          <label for="u-password">Senha</label>
+          <input type="password" id="u-password" required minlength="4" />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="userCancel">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Criar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const API_BASE = (window.location.protocol === "file:" ? "http://localhost:8000" : "");
+    const TOKEN_KEY = "jardim_admin_token";
+    const USER_KEY = "jardim_admin_user";
+
+    // ---------- HTTP helpers ----------
+    function getToken() { return localStorage.getItem(TOKEN_KEY); }
+    function getUsername() { return localStorage.getItem(USER_KEY); }
+
+    async function api(path, options = {}) {
+      const headers = { ...(options.headers || {}) };
+      const token = getToken();
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      if (options.body && !(options.body instanceof FormData) && !headers["Content-Type"]) {
+        headers["Content-Type"] = "application/json";
+      }
+
+      const res = await fetch(API_BASE + path, { ...options, headers });
+      if (res.status === 401) {
+        logout();
+        throw new Error("Sessão expirada. Faça login novamente.");
+      }
+      if (!res.ok) {
+        let detail = "Erro na requisição";
+        try { const d = await res.json(); if (d.detail) detail = d.detail; } catch {}
+        throw new Error(detail);
+      }
+      if (res.status === 204) return null;
+      return res.json();
+    }
+
+    // ---------- Toast ----------
+    const toastEl = document.getElementById("toast");
+    let toastTimer;
+    function toast(msg, type = "success") {
+      clearTimeout(toastTimer);
+      toastEl.textContent = msg;
+      toastEl.classList.toggle("error", type === "error");
+      toastEl.classList.add("show");
+      toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2800);
+    }
+
+    // ---------- Login ----------
+    const loginWrap = document.getElementById("loginWrap");
+    const app = document.getElementById("app");
+    const loginForm = document.getElementById("loginForm");
+    const loginError = document.getElementById("loginError");
+    const loginBtn = document.getElementById("loginBtn");
+
+    function showLogin() {
+      loginWrap.classList.remove("hidden");
+      app.classList.remove("active");
+    }
+
+    function showApp() {
+      loginWrap.classList.add("hidden");
+      app.classList.add("active");
+      document.getElementById("userChip").textContent = getUsername() || "";
+      loadFeedbacks();
+    }
+
+    function logout() {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      showLogin();
+    }
+
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      loginError.style.display = "none";
+      loginBtn.disabled = true;
+      loginBtn.textContent = "Entrando…";
+
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+
+      const body = new URLSearchParams();
+      body.append("username", username);
+      body.append("password", password);
+
+      try {
+        const res = await fetch(API_BASE + "/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body,
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || "Usuário ou senha inválidos");
+        }
+        const data = await res.json();
+        localStorage.setItem(TOKEN_KEY, data.access_token);
+        localStorage.setItem(USER_KEY, data.username);
+        showApp();
+      } catch (err) {
+        loginError.textContent = err.message;
+        loginError.style.display = "block";
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = "Entrar";
+      }
+    });
+
+    document.getElementById("btnLogout").addEventListener("click", () => {
+      logout();
+      toast("Sessão encerrada");
+    });
+
+    // ---------- Feedback list ----------
+    const listContainer = document.getElementById("listContainer");
+
+    async function loadFeedbacks() {
+      listContainer.innerHTML = `<div class="loader">Carregando…</div>`;
+      try {
+        const items = await api("/api/feedbacks");
+        renderFeedbackList(items);
+      } catch (err) {
+        listContainer.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+      }
+    }
+
+    function renderFeedbackList(items) {
+      if (!items.length) {
+        listContainer.innerHTML = `<div class="empty-state">Nenhum feedback ainda. Clique em <b>+ Novo feedback</b> para começar.</div>`;
+        return;
+      }
+      listContainer.innerHTML = `<div class="fb-list">${items.map(itemHtml).join("")}</div>`;
+      listContainer.querySelectorAll("[data-edit]").forEach(btn => {
+        btn.addEventListener("click", () => openEditor(Number(btn.dataset.edit)));
+      });
+      listContainer.querySelectorAll("[data-delete]").forEach(btn => {
+        btn.addEventListener("click", () => deleteFeedback(Number(btn.dataset.delete)));
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[c]));
+    }
+
+    function itemHtml(fb) {
+      return `
+        <article class="fb-item">
+          <div class="thumb"><img src="${escapeHtml(resolveImageUrl(fb.thumb))}" alt="" onerror="this.style.display='none'"/></div>
+          <div class="info">
+            <h3>${escapeHtml(fb.title)}</h3>
+            <div class="meta">${escapeHtml(fb.date)} · ${escapeHtml(fb.author)} · <em>${escapeHtml(fb.tag)}</em></div>
+            <div class="excerpt">${escapeHtml(fb.excerpt)}</div>
+          </div>
+          <div class="actions">
+            <button class="btn btn-secondary" data-edit="${fb.id}">Editar</button>
+            <button class="btn btn-danger" data-delete="${fb.id}">Excluir</button>
+          </div>
+        </article>
+      `;
+    }
+
+    async function deleteFeedback(id) {
+      if (!confirm("Excluir este feedback? Essa ação não pode ser desfeita.")) return;
+      try {
+        await api(`/api/feedbacks/${id}`, { method: "DELETE" });
+        toast("Feedback excluído");
+        loadFeedbacks();
+      } catch (err) {
+        toast(err.message, "error");
+      }
+    }
+
+    // ---------- Editor ----------
+    const editorBackdrop = document.getElementById("editorBackdrop");
+    const editorForm = document.getElementById("editorForm");
+    const editorTitle = document.getElementById("editorTitle");
+    const mediaList = document.getElementById("mediaList");
+    let editingId = null;
+
+    // Resolve stored path (e.g. "images/foo.jpg") to a URL the browser can load.
+    // When admin.html is served via file://, we resolve relative to the html file.
+    // When served via http (backend), the backend's StaticFiles handles it.
+    function resolveImageUrl(src) {
+      if (!src) return "";
+      if (/^https?:\/\//i.test(src) || src.startsWith("data:")) return src;
+      // Prefer backend URL so freshly-uploaded files show immediately without waiting
+      // for the OS to sync the file on disk from admin's viewpoint.
+      return API_BASE ? API_BASE + "/" + src.replace(/^\//, "") : src;
+    }
+
+    async function uploadImageFile(fileInput) {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) return null;
+      const fd = new FormData();
+      fd.append("file", file);
+      const path = (await api("/api/uploads", { method: "POST", body: fd })).path;
+      fileInput.value = "";
+      return path;
+    }
+
+    function openEditor(id) {
+      editingId = null;
+      editorForm.reset();
+      mediaList.innerHTML = "";
+      setThumbPreview("");
+
+      if (id) {
+        editorTitle.textContent = "Editar feedback";
+        api(`/api/feedbacks/${id}`).then(fb => {
+          editingId = fb.id;
+          document.getElementById("f-title").value = fb.title;
+          document.getElementById("f-date").value = fb.date;
+          document.getElementById("f-tag").value = fb.tag;
+          document.getElementById("f-thumb").value = fb.thumb;
+          setThumbPreview(fb.thumb);
+          document.getElementById("f-excerpt").value = fb.excerpt;
+          document.getElementById("f-text").value = fb.text;
+          document.getElementById("f-author").value = fb.author;
+          document.getElementById("f-role").value = fb.role;
+          (fb.media || []).forEach(src => addMediaRow(src));
+        }).catch(err => toast(err.message, "error"));
+      } else {
+        editorTitle.textContent = "Novo feedback";
+        addMediaRow("");
+      }
+
+      editorBackdrop.classList.add("open");
+    }
+
+    function closeEditor() {
+      editorBackdrop.classList.remove("open");
+    }
+
+    function setMediaRowPreview(row, src) {
+      const preview = row.querySelector(".media-preview");
+      if (src) {
+        preview.innerHTML = `<img src="${escapeHtml(resolveImageUrl(src))}" alt="" onerror="this.parentNode.innerHTML='<span>Erro</span>'"/>`;
+      } else {
+        preview.innerHTML = `<span>Sem<br/>imagem</span>`;
+      }
+    }
+
+    function addMediaRow(src = "") {
+      const row = document.createElement("div");
+      row.className = "media-row";
+      row.innerHTML = `
+        <div class="media-preview"></div>
+        <div class="media-controls">
+          <input type="text" placeholder="URL ou caminho (ex.: images/foto.jpg)" value="${escapeHtml(src)}" />
+          <div class="row">
+            <button type="button" class="btn btn-secondary btn-sm" data-upload>Enviar imagem…</button>
+            <button type="button" class="btn btn-danger btn-sm" data-remove>Remover</button>
+          </div>
+        </div>
+        <input type="file" accept="image/*" />
+      `;
+
+      const input = row.querySelector("input[type='text']");
+      const fileInput = row.querySelector("input[type='file']");
+      const uploadBtn = row.querySelector("[data-upload]");
+      const removeBtn = row.querySelector("[data-remove]");
+
+      input.addEventListener("input", () => setMediaRowPreview(row, input.value.trim()));
+      uploadBtn.addEventListener("click", () => fileInput.click());
+      fileInput.addEventListener("change", async () => {
+        if (!fileInput.files.length) return;
+        uploadBtn.disabled = true;
+        uploadBtn.textContent = "Enviando…";
+        try {
+          const path = await uploadImageFile(fileInput);
+          if (path) {
+            input.value = path;
+            setMediaRowPreview(row, path);
+            toast("Imagem enviada");
+          }
+        } catch (err) {
+          toast(err.message, "error");
+        } finally {
+          uploadBtn.disabled = false;
+          uploadBtn.textContent = "Enviar imagem…";
+        }
+      });
+      removeBtn.addEventListener("click", () => row.remove());
+
+      mediaList.appendChild(row);
+      setMediaRowPreview(row, src);
+    }
+
+    // ---------- Thumb uploader ----------
+    const thumbInput = document.getElementById("f-thumb");
+    const thumbPreviewEl = document.getElementById("thumbPreview");
+    const thumbFile = document.getElementById("thumbFile");
+    const btnUploadThumb = document.getElementById("btnUploadThumb");
+
+    function setThumbPreview(src) {
+      if (src) {
+        thumbPreviewEl.innerHTML = `<img src="${escapeHtml(resolveImageUrl(src))}" alt="" onerror="this.parentNode.innerHTML='<span>Erro</span>'"/>`;
+      } else {
+        thumbPreviewEl.innerHTML = `<span>Sem imagem</span>`;
+      }
+    }
+
+    thumbInput.addEventListener("input", () => setThumbPreview(thumbInput.value.trim()));
+    btnUploadThumb.addEventListener("click", () => thumbFile.click());
+    thumbFile.addEventListener("change", async () => {
+      if (!thumbFile.files.length) return;
+      btnUploadThumb.disabled = true;
+      btnUploadThumb.textContent = "Enviando…";
+      try {
+        const path = await uploadImageFile(thumbFile);
+        if (path) {
+          thumbInput.value = path;
+          setThumbPreview(path);
+          toast("Thumbnail enviada");
+        }
+      } catch (err) {
+        toast(err.message, "error");
+      } finally {
+        btnUploadThumb.disabled = false;
+        btnUploadThumb.textContent = "Enviar imagem…";
+      }
+    });
+
+    document.getElementById("btnAddMedia").addEventListener("click", () => addMediaRow());
+    document.getElementById("btnNewFeedback").addEventListener("click", () => openEditor(null));
+    document.getElementById("editorClose").addEventListener("click", closeEditor);
+    document.getElementById("editorCancel").addEventListener("click", closeEditor);
+    editorBackdrop.addEventListener("click", e => { if (e.target === editorBackdrop) closeEditor(); });
+
+    editorForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const media = Array.from(mediaList.querySelectorAll(".media-row"))
+        .map(r => r.querySelector("input[type='text']").value.trim())
+        .filter(src => src);
+
+      const payload = {
+        title: document.getElementById("f-title").value.trim(),
+        date: document.getElementById("f-date").value.trim(),
+        tag: document.getElementById("f-tag").value.trim(),
+        excerpt: document.getElementById("f-excerpt").value.trim(),
+        thumb: document.getElementById("f-thumb").value.trim(),
+        text: document.getElementById("f-text").value,
+        author: document.getElementById("f-author").value.trim(),
+        role: document.getElementById("f-role").value.trim(),
+        media,
+      };
+
+      try {
+        if (editingId) {
+          await api(`/api/feedbacks/${editingId}`, { method: "PUT", body: JSON.stringify(payload) });
+          toast("Feedback atualizado");
+        } else {
+          await api(`/api/feedbacks`, { method: "POST", body: JSON.stringify(payload) });
+          toast("Feedback criado");
+        }
+        closeEditor();
+        loadFeedbacks();
+      } catch (err) {
+        toast(err.message, "error");
+      }
+    });
+
+    // ---------- New user ----------
+    const userBackdrop = document.getElementById("userBackdrop");
+    const userForm = document.getElementById("userForm");
+    const userError = document.getElementById("userError");
+
+    document.getElementById("btnNewUser").addEventListener("click", () => {
+      userError.style.display = "none";
+      userForm.reset();
+      userBackdrop.classList.add("open");
+    });
+
+    function closeUser() { userBackdrop.classList.remove("open"); }
+    document.getElementById("userClose").addEventListener("click", closeUser);
+    document.getElementById("userCancel").addEventListener("click", closeUser);
+    userBackdrop.addEventListener("click", e => { if (e.target === userBackdrop) closeUser(); });
+
+    userForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      userError.style.display = "none";
+      const username = document.getElementById("u-username").value.trim();
+      const password = document.getElementById("u-password").value;
+      try {
+        await api("/api/auth/register", {
+          method: "POST",
+          body: JSON.stringify({ username, password }),
+        });
+        toast(`Usuário "${username}" criado`);
+        closeUser();
+      } catch (err) {
+        userError.textContent = err.message;
+        userError.style.display = "block";
+      }
+    });
+
+    // ---------- Init ----------
+    (async function init() {
+      if (!getToken()) { showLogin(); return; }
+      try {
+        const me = await api("/api/auth/me");
+        localStorage.setItem(USER_KEY, me.username);
+        showApp();
+      } catch {
+        showLogin();
+      }
+    })();
+  </script>
+</body>
+</html>

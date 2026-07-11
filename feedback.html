@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feedbacks | Jardim</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="apple-touch-icon" href="favicon.png" />
+  <style>
+    :root {
+      --verde-claro: #e6f5ec;
+      --verde-suave: #c8e8d4;
+      --verde-medio: #7cc59a;
+      --verde-escuro: #4a6741;
+      --branco: #ffffff;
+      --texto: #2b3a30;
+      --texto-suave: #6b7a70;
+      --sombra: 0 6px 20px rgba(62, 143, 95, 0.12);
+      --sombra-hover: 0 12px 30px rgba(62, 143, 95, 0.22);
+      --radius: 16px;
+      --fundo-cream: #faf5e4;
+      --fundo-lavanda: #e8eef8;
+      --fundo-rosa: #f5e0ea;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(90deg, var(--fundo-cream) 0%, var(--fundo-lavanda) 48%, var(--fundo-rosa) 100%);
+      color: var(--texto);
+      min-height: 100vh;
+      line-height: 1.5;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .bg-decor {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .bg-decor span {
+      position: absolute;
+      display: block;
+      opacity: 0.85;
+      will-change: transform;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .bg-decor span { will-change: auto; }
+    }
+
+    .bg-decor .circle {
+      border-radius: 50%;
+      border: 2px solid currentColor;
+      background: transparent;
+    }
+
+    .bg-decor .plus::before,
+    .bg-decor .plus::after {
+      content: "";
+      position: absolute;
+      background: currentColor;
+      border-radius: 2px;
+    }
+
+    .bg-decor .plus::before {
+      width: 100%;
+      height: 2px;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+    }
+
+    .bg-decor .plus::after {
+      width: 2px;
+      height: 100%;
+      left: 50%;
+      top: 0;
+      transform: translateX(-50%);
+    }
+
+    .bg-decor .triangle {
+      width: 0;
+      height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-bottom: 12px solid currentColor;
+      background: transparent;
+    }
+
+    .bg-decor .dot {
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    .bg-decor .s1 { color: #f5a623; width: 14px; height: 14px; top: 12%; left: 8%; }
+    .bg-decor .s2 { color: #7cc59a; width: 18px; height: 18px; top: 22%; left: 18%; }
+    .bg-decor .s3 { color: #e74c5c; width: 12px; height: 12px; top: 8%; left: 32%; }
+    .bg-decor .s4 { color: #9b7fd4; width: 16px; height: 16px; top: 35%; left: 5%; }
+    .bg-decor .s5 { color: #6ba3d6; width: 10px; height: 10px; top: 55%; left: 12%; }
+    .bg-decor .s6 { color: #f5a623; width: 14px; height: 14px; top: 70%; left: 22%; }
+    .bg-decor .s7 { color: #7cc59a; width: 12px; height: 12px; top: 18%; right: 28%; }
+    .bg-decor .s8 { color: #e74c5c; width: 16px; height: 16px; top: 10%; right: 15%; }
+    .bg-decor .s9 { color: #9b7fd4; width: 10px; height: 10px; top: 42%; right: 8%; }
+    .bg-decor .s10 { color: #6ba3d6; width: 14px; height: 14px; top: 62%; right: 20%; }
+    .bg-decor .s11 { color: #f5a623; width: 8px; height: 8px; top: 78%; right: 35%; }
+    .bg-decor .s12 { color: #7cc59a; width: 10px; height: 10px; top: 30%; left: 45%; }
+    .bg-decor .s13 { color: #e74c5c; width: 8px; height: 8px; top: 48%; right: 42%; }
+    .bg-decor .s14 { color: #9b7fd4; width: 12px; height: 12px; top: 85%; left: 40%; }
+
+    header.page-header,
+    main {
+      position: relative;
+      z-index: 2;
+    }
+
+    header.page-header {
+      text-align: center;
+      padding: 40px 20px 30px;
+    }
+
+    .page-logo {
+      max-width: 320px;
+      width: 60%;
+      height: auto;
+      margin: 0 auto 24px;
+      display: block;
+      filter: drop-shadow(0 4px 10px rgba(62, 143, 95, 0.15));
+      transition: transform 0.3s ease, filter 0.3s ease;
+    }
+
+    .page-logo-link { display: block; text-decoration: none; }
+    .page-logo-link:hover .page-logo {
+      transform: scale(1.04);
+      filter: drop-shadow(0 6px 16px rgba(62, 143, 95, 0.3));
+    }
+
+    header.page-header h1 {
+      font-size: clamp(28px, 4vw, 40px);
+      color: var(--verde-escuro);
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    header.page-header p {
+      color: var(--texto-suave);
+      font-size: 16px;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 24px 80px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--branco);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--sombra);
+      cursor: pointer;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      border: 1px solid var(--verde-suave);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--sombra-hover);
+    }
+
+    .card:focus-visible {
+      outline: 3px solid var(--verde-medio);
+      outline-offset: 3px;
+    }
+
+    .card-thumb {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      background: var(--verde-claro);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .card-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+
+    .card:hover .card-thumb img { transform: scale(1.05); }
+
+    .card-body { padding: 18px 20px 22px; }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--verde-escuro);
+      margin-bottom: 6px;
+    }
+
+    .card-date {
+      font-size: 13px;
+      color: var(--texto-suave);
+      margin-bottom: 10px;
+    }
+
+    .card-excerpt {
+      font-size: 14px;
+      color: var(--texto);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(30, 55, 40, 0.55);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal {
+      background: var(--branco);
+      border-radius: 20px;
+      max-width: 1000px;
+      width: 100%;
+      max-height: 90vh;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.25);
+      transform: scale(0.96);
+      transition: transform 0.25s ease;
+    }
+
+    .modal-backdrop.open .modal { transform: scale(1); }
+
+    @media (max-width: 780px) {
+      .modal {
+        grid-template-columns: 1fr;
+        max-height: 95vh;
+      }
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: var(--branco);
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 20px;
+      color: var(--verde-escuro);
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease, background 0.2s ease;
+      z-index: 10;
+    }
+
+    .modal-close:hover {
+      transform: rotate(90deg);
+      background: var(--verde-claro);
+    }
+
+    /* Carrossel */
+    .carousel {
+      position: relative;
+      background: var(--verde-claro);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .carousel-track {
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      position: relative;
+    }
+
+    @media (max-width: 780px) {
+      .carousel-track { aspect-ratio: 4 / 3; }
+    }
+
+    .carousel-slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .carousel-slide.active { opacity: 1; z-index: 2; }
+
+    .carousel-slide img,
+    .carousel-slide video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .carousel-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.9);
+      border: none;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      cursor: pointer;
+      color: var(--verde-escuro);
+      font-size: 20px;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: background 0.2s ease;
+    }
+
+    .carousel-btn:hover { background: var(--branco); }
+    .carousel-btn.prev { left: 12px; }
+    .carousel-btn.next { right: 12px; }
+
+    .carousel-dots {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      z-index: 5;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.6);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .dot.active {
+      background: var(--verde-escuro);
+      width: 22px;
+      border-radius: 4px;
+    }
+
+    /* Conteúdo do feedback */
+    .feedback-content {
+      padding: 40px 36px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .feedback-content h2 {
+      color: var(--verde-escuro);
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .feedback-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--texto-suave);
+    }
+
+    .feedback-meta .tag {
+      background: var(--verde-claro);
+      color: var(--verde-escuro);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .feedback-text {
+      font-size: 15px;
+      color: var(--texto);
+      line-height: 1.7;
+      white-space: pre-line;
+    }
+
+    .feedback-author {
+      margin-top: auto;
+      padding-top: 20px;
+      border-top: 1px solid var(--verde-suave);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--verde-medio);
+      color: var(--branco);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    .author-info strong { display: block; color: var(--texto); font-size: 14px; }
+    .author-info span { font-size: 12px; color: var(--texto-suave); }
+
+    body.modal-open { overflow: hidden; }
+  </style>
+</head>
+<body>
+  <div class="bg-decor" aria-hidden="true">
+    <span class="circle s1"></span>
+    <span class="circle s2"></span>
+    <span class="plus s3"></span>
+    <span class="triangle s4"></span>
+    <span class="dot s5"></span>
+    <span class="plus s6"></span>
+    <span class="circle s7"></span>
+    <span class="triangle s8"></span>
+    <span class="dot s9"></span>
+    <span class="circle s10"></span>
+    <span class="plus s11"></span>
+    <span class="dot s12"></span>
+    <span class="circle s13"></span>
+    <span class="plus s14"></span>
+  </div>
+
+  <header class="page-header">
+    <a href="https://buffetjardimdossonhos.com.br/" target="_blank" rel="noopener" class="page-logo-link" aria-label="Visitar site do Buffet Jardim dos Sonhos">
+      <img src="jardim-dos-sonhos-logo.png" alt="Jardim dos Sonhos" class="page-logo" />
+    </a>
+    <h1>Feedbacks dos nossos Anfitriões</h1>
+    <p>Confira o que aconteceu, veja as fotos, os vídeos e leia os depoimentos dos nossos eventos.</p>
+  </header>
+
+  <main>
+    <div class="cards-grid" id="cardsGrid"></div>
+  </main>
+
+  <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <button class="modal-close" id="modalClose" aria-label="Fechar">&times;</button>
+      <div class="carousel">
+        <div class="carousel-track" id="carouselTrack"></div>
+        <button class="carousel-btn prev" id="prevBtn" aria-label="Anterior">&#10094;</button>
+        <button class="carousel-btn next" id="nextBtn" aria-label="Próximo">&#10095;</button>
+        <div class="carousel-dots" id="carouselDots"></div>
+      </div>
+      <div class="feedback-content">
+        <div class="feedback-meta">
+          <span class="tag" id="modalTag"></span>
+          <span id="modalDate"></span>
+        </div>
+        <h2 id="modalTitle"></h2>
+        <div class="feedback-text" id="modalText"></div>
+        <div class="feedback-author">
+          <div class="avatar" id="modalAvatar"></div>
+          <div class="author-info">
+            <strong id="modalAuthor"></strong>
+            <span id="modalRole"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = (window.location.protocol === "file:" ? "http://localhost:8000" : "");
+
+    function resolveImageUrl(src) {
+      if (!src) return "";
+      if (/^https?:\/\//i.test(src) || src.startsWith("data:")) return src;
+      // If we know the backend URL, prefix so freshly-uploaded images load via HTTP.
+      // Falls back to relative path if we're already same-origin as the API.
+      return API_BASE ? API_BASE + "/" + src.replace(/^\//, "") : src;
+    }
+
+    let feedbacks = [
+      {
+        id: 1,
+        title: "5 aninhos do Antony",
+        date: "14 de junho de 2026",
+        tag: "Aniversário",
+        excerpt: "Uma festa simplesmente PERFEITA! Espaço, comida e equipe nota 1000.",
+        thumb: "images/hero-1.jpeg",
+        text: "No dia 14/06/2026 comemoramos os 5 aninhos do meu filho Antony e foi uma festa simplesmente PERFEITA!!!\n\nO Buffet Jardim dos Sonhos é maravilhoso, espaço aconchegante, bonito e com muitas atrações. A comida é deliciosa, bem servida, quentinha e de muita qualidade, sem contar com a atenção e simpatia de toda a equipe, desde os monitores, os garçons, gerente e recreação.\n\nTodos os convidados elogiaram.\n\nEu recomendo de olhos fechados o Buffet, espaço, serviço e pessoas, nota 1000.\n\nO meu muito obrigada, a família Buffet Jardim dos Sonhos por nos proporcionarem um dia incrível e inesquecível.\n\n⭐⭐⭐⭐⭐",
+        author: "Alaina Oliveira",
+        role: "Mãe do aniversariante · 4 avaliações",
+        media: ["images/hero-1.jpeg", "images/hero-2.jpeg", "images/hero-3.jpeg"]
+      },
+      {
+        id: 2,
+        title: "Festa da Emilly",
+        date: "Junho de 2026",
+        tag: "Aniversário",
+        excerpt: "Ambiente aberto, comida maravilhosa e atendimento incrível — foi perfeito!",
+        thumb: "images/mayara-1.png",
+        text: "🎈 🥳 Segundo ano de festa com o @buffetjardimdossonhos e, mais uma vez, eles superaram todas as expectativas!\n\n🎂 No 1º aniversário, escolhi porque tinham nota 4.9 no Google, experiência de mais de 30 anos e muitas recomendações! E realmente: comida incrível, atendimento impecável e um ambiente acolhedor.\n\nNeste segundo ano não tive dúvidas (e foi ainda melhor)! 💙 🧸 💫\nÉ como receber amigos em casa: um espaço onde as pessoas conversam, compartilham e se divertem, enquanto as crianças têm opções de brincadeiras para todas as idades!\n\nCada detalhe mostra o carinho e a dedicação: a casa sempre bem cuidada, a equipe atenciosa, a comida deliciosa e o acompanhamento de perto no dia da festa 🎉\n\nFoi um dia de muita alegria e muitos elogios dos convidados. Se Deus permitir, ano que vem estaremos lá novamente. 🙏 ✨",
+        author: "Mayara Rosa",
+        role: "Mãe da Emilly",
+        media: ["images/mayara-1.png"]
+      },
+      {
+        id: 3,
+        title: "Festinha do João",
+        date: "10 de maio de 2026",
+        tag: "Aniversário",
+        excerpt: "Festa linda, equipe feliz, animadores incríveis — dia muito especial.",
+        thumb: "images/card3-1.png",
+        text: "Vou te mandar aqui por escrito!\n\nFoi uma festa linda, tudo muito organizado, a equipe que trabalhou estava feliz, a limpeza estava excelente, os animadores foram incríveis, foi um dia muito especial, somos muito gratos por todos que fizeram desse dia ainda mais especial.\n\nFoi diferenciado por ter os momentos de recreação, a Mari foi muito atenciosa, não temos nenhum ponto negativo.\n\n⭐⭐⭐⭐⭐",
+        author: "Beatriz Almeida",
+        role: "Mãe do João",
+        media: ["images/card3-1.png"]
+      },
+      {
+        id: 4,
+        title: "Festinha do João",
+        date: "10 de maio de 2026",
+        tag: "Aniversário",
+        excerpt: "Festa linda, equipe feliz, animadores incríveis — dia muito especial.",
+        thumb: "images/card4-1.png",
+        text: "No 1o aniversário, escolhi porque tinham nota 4.9 no Google, experiência de mais de 30 anos e muitas recomendações! E realmente: comida incrível, atendimento impecável e um ambiente acolhedor.\n\nNeste segundo ano não tive dúvidas (e foi ainda melhor)! 💙🇬🇧🧸💫 \n\nÉ como receber amigos em casa: um espaço onde as pessoas conversam, compartilham e se divertem, enquanto as crianças têm opções de brincadeiras para todas as idades!\n\nCada detalhe mostra o carinho e a dedicação: a casa sempre bem cuidada, a equipe atenciosa, a comida deliciosa e o acompanhamento de perto no dia da festa 🎉",
+        author: "Camila Rocha",
+        role: "Paisagista",
+        media: ["images/card4-1.png"]
+      },
+      
+    ];
+
+    const cardsGrid = document.getElementById("cardsGrid");
+    const backdrop = document.getElementById("modalBackdrop");
+    const modalClose = document.getElementById("modalClose");
+    const carouselTrack = document.getElementById("carouselTrack");
+    const carouselDots = document.getElementById("carouselDots");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    let currentSlide = 0;
+    let slides = [];
+
+    function renderCards() {
+      cardsGrid.innerHTML = feedbacks.map(fb => `
+        <article class="card" tabindex="0" data-id="${fb.id}" role="button" aria-label="Abrir feedback: ${fb.title}">
+          <div class="card-thumb"><img src="${resolveImageUrl(fb.thumb)}" alt="${fb.title}" loading="lazy" /></div>
+          <div class="card-body">
+            <h3 class="card-title">${fb.title}</h3>
+            <p class="card-date">${fb.date}</p>
+            <p class="card-excerpt">${fb.excerpt}</p>
+          </div>
+        </article>
+      `).join("");
+
+      cardsGrid.querySelectorAll(".card").forEach(card => {
+        const open = () => openModal(Number(card.dataset.id));
+        card.addEventListener("click", open);
+        card.addEventListener("keydown", e => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+        });
+      });
+    }
+
+    function openModal(id) {
+      const fb = feedbacks.find(f => f.id === id);
+      if (!fb) return;
+
+      document.getElementById("modalTitle").textContent = fb.title;
+      document.getElementById("modalDate").textContent = fb.date;
+      document.getElementById("modalTag").textContent = fb.tag;
+      document.getElementById("modalText").textContent = fb.text;
+      document.getElementById("modalAuthor").textContent = fb.author;
+      document.getElementById("modalRole").textContent = fb.role;
+      document.getElementById("modalAvatar").textContent = fb.author.split(" ").map(n => n[0]).slice(0,2).join("");
+
+      carouselTrack.innerHTML = fb.media.map((src, i) => `
+        <div class="carousel-slide ${i === 0 ? "active" : ""}" data-index="${i}">
+          <img src="${resolveImageUrl(src)}" alt="${fb.title} - imagem ${i + 1}" />
+        </div>
+      `).join("");
+
+      carouselDots.innerHTML = fb.media.map((_, i) =>
+        `<button class="dot ${i === 0 ? "active" : ""}" data-index="${i}" aria-label="Ir para slide ${i + 1}"></button>`
+      ).join("");
+
+      carouselDots.querySelectorAll(".dot").forEach(dot => {
+        dot.addEventListener("click", () => goToSlide(Number(dot.dataset.index)));
+      });
+
+      slides = carouselTrack.querySelectorAll(".carousel-slide");
+      currentSlide = 0;
+
+      const hasMultiple = fb.media.length > 1;
+      prevBtn.style.display = hasMultiple ? "flex" : "none";
+      nextBtn.style.display = hasMultiple ? "flex" : "none";
+      carouselDots.style.display = hasMultiple ? "flex" : "none";
+
+      backdrop.classList.add("open");
+      document.body.classList.add("modal-open");
+      modalClose.focus();
+    }
+
+    function closeModal() {
+      backdrop.classList.remove("open");
+      document.body.classList.remove("modal-open");
+      carouselTrack.querySelectorAll("video").forEach(v => v.pause());
+    }
+
+    function goToSlide(index) {
+      slides[currentSlide].classList.remove("active");
+      const video = slides[currentSlide].querySelector("video");
+      if (video) video.pause();
+      currentSlide = (index + slides.length) % slides.length;
+      slides[currentSlide].classList.add("active");
+      carouselDots.querySelectorAll(".dot").forEach((d, i) => d.classList.toggle("active", i === currentSlide));
+    }
+
+    prevBtn.addEventListener("click", () => goToSlide(currentSlide - 1));
+    nextBtn.addEventListener("click", () => goToSlide(currentSlide + 1));
+
+    modalClose.addEventListener("click", closeModal);
+    backdrop.addEventListener("click", e => { if (e.target === backdrop) closeModal(); });
+    document.addEventListener("keydown", e => {
+      if (!backdrop.classList.contains("open")) return;
+      if (e.key === "Escape") closeModal();
+      if (e.key === "ArrowLeft") goToSlide(currentSlide - 1);
+      if (e.key === "ArrowRight") goToSlide(currentSlide + 1);
+    });
+
+    renderCards();
+
+    // Tenta carregar feedbacks da API (backend FastAPI). Se falhar, mantém a lista estática.
+    (async function loadFromApi() {
+      try {
+        const res = await fetch(API_BASE + "/api/feedbacks", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data) && data.length) {
+          feedbacks = data;
+          renderCards();
+        }
+      } catch {
+        // API offline — segue com a lista estática
+      }
+    })();
+
+    // Animação das formas geométricas do fundo
+    (function animateBgShapes() {
+      const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (prefersReduced) return;
+
+      const decor = document.querySelector(".bg-decor");
+      const shapes = Array.from(decor.querySelectorAll("span"));
+
+      const state = shapes.map(el => {
+        const rect = el.getBoundingClientRect();
+        return {
+          el,
+          x: rect.left,
+          y: rect.top,
+          w: rect.width,
+          h: rect.height,
+          vx: (Math.random() - 0.5) * 0.6,
+          vy: (Math.random() - 0.5) * 0.6,
+          rot: Math.random() * 360,
+          vr: (Math.random() - 0.5) * 0.4,
+          phase: Math.random() * Math.PI * 2
+        };
+      });
+
+      // Fixa os spans no canto superior esquerdo e move via transform
+      shapes.forEach(el => {
+        el.style.top = "0";
+        el.style.left = "0";
+        el.style.right = "auto";
+      });
+
+      let width = window.innerWidth;
+      let height = window.innerHeight;
+      let running = true;
+
+      window.addEventListener("resize", () => {
+        width = window.innerWidth;
+        height = window.innerHeight;
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        running = !document.hidden;
+        if (running) requestAnimationFrame(tick);
+      });
+
+      let last = performance.now();
+      function tick(now) {
+        const dt = Math.min(50, now - last);
+        last = now;
+
+        for (const s of state) {
+          s.x += s.vx * dt * 0.06;
+          s.y += s.vy * dt * 0.06;
+          s.rot += s.vr * dt * 0.06;
+          s.phase += 0.002 * dt;
+
+          if (s.x <= 0)                { s.x = 0; s.vx = Math.abs(s.vx); }
+          if (s.x + s.w >= width)      { s.x = width - s.w; s.vx = -Math.abs(s.vx); }
+          if (s.y <= 0)                { s.y = 0; s.vy = Math.abs(s.vy); }
+          if (s.y + s.h >= height)     { s.y = height - s.h; s.vy = -Math.abs(s.vy); }
+
+          const drift = Math.sin(s.phase) * 3;
+          s.el.style.transform = `translate(${s.x.toFixed(2)}px, ${(s.y + drift).toFixed(2)}px) rotate(${s.rot.toFixed(2)}deg)`;
+        }
+
+        if (running) requestAnimationFrame(tick);
+      }
+
+      requestAnimationFrame(tick);
+    })();
+  </script>
+</body>
+</html>
